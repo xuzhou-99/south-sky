@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="cn.altaria.sky.login.mapper.AccountMapper">
+
+    <resultMap id="BaseResultMap" type="cn.altaria.sky.login.pojo.AccountPojo">
+        <!--
+          WARNING - @mbg.generated
+        -->
+        <result column="id" jdbcType="VARCHAR" property="id"/>
+        <result column="username" jdbcType="VARCHAR" property="username"/>
+        <result column="password" jdbcType="VARCHAR" property="password"/>
+        <result column="email" jdbcType="VARCHAR" property="email"/>
+        <result column="mobile" jdbcType="VARCHAR" property="mobile"/>
+        <result column="createtime" jdbcType="TIMESTAMP" property="createTime"/>
+        <result column="updatetime" jdbcType="TIMESTAMP" property="updateTime"/>
+    </resultMap>
+
+    <insert id="insertAccount" parameterType="cn.altaria.sky.login.pojo.AccountPojo">
+        INSERT INTO account (id, username, password, email, createtime, updatetime)
+        VALUES (#{account.id}, #{account.username}, #{account.password}, #{account.email}, #{account.createTime},
+                #{account.updateTime})
+    </insert>
+    <select id="selectAccountByEmail" parameterType="String" resultMap="BaseResultMap">
+        select id, username, password, email, mobile, createtime, updatetime
+        from account
+        where email = #{email}
+    </select>
+    <select id="selectAccountById" parameterType="String" resultMap="BaseResultMap">
+        select id, username, password, email, mobile, createtime, updatetime
+        from account
+        where id = #{id}
+    </select>
+    <select id="selectAccountByUsername" parameterType="String" resultMap="BaseResultMap">
+        select id, username, password, email, mobile, createtime, updatetime
+        from account
+        where username = #{username}
+    </select>
+    <select id="selectAccountByMobile" parameterType="String" resultMap="BaseResultMap">
+        select id, username, password, email, mobile, createtime, updatetime
+        from account
+        where mobile = #{mobile}
+    </select>
+
+</mapper>

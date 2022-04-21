@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="cn.altaria.sky.login.mapper.RegionMapper">
+    <resultMap id="BaseResultMap" type="cn.altaria.sky.login.pojo.node.Region">
+        <!--
+          WARNING - @mbg.generated
+        -->
+        <result column="id" jdbcType="SMALLINT" property="id"/>
+        <result column="name" jdbcType="VARCHAR" property="name"/>
+        <result column="parent_id" jdbcType="SMALLINT" property="parentId"/>
+        <result column="suffix" jdbcType="VARCHAR" property="suffix"/>
+        <result column="code" jdbcType="CHAR" property="code"/>
+        <result column="order" jdbcType="TINYINT" property="order"/>
+        <result column="level_info" jdbcType="INTEGER" property="levelInfo"/>
+    </resultMap>
+    <select id="selectAll" resultMap="BaseResultMap">
+        SELECT `id`,
+               `name`,
+               `parent_id`,
+               `suffix`,
+               `order`,
+               `code`
+        FROM `test`.`district`
+        order by `id`
+    </select>
+    <select id="selectChildList" resultMap="BaseResultMap">
+        SELECT `id`,
+               `name`,
+               `parent_id`,
+               `suffix`,
+               `order`,
+               `code`,
+               `level_info`
+        FROM `test`.`district`
+        where `id` = #{region.id}
+           or `parent_id` >= #{region.id}
+        order by `id`
+    </select>
+
+</mapper>

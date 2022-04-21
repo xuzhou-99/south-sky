@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="cn.altaria.sky.login.mapper.UserMapper">
+
+    <resultMap id="BaseResultMap" type="cn.altaria.sky.login.pojo.UserPojo">
+        <!--
+          WARNING - @mbg.generated
+        -->
+        <result column="id" jdbcType="VARCHAR" property="id"/>
+        <result column="name" jdbcType="VARCHAR" property="name"/>
+        <result column="username" jdbcType="VARCHAR" property="username"/>
+        <result column="password" jdbcType="VARCHAR" property="password"/>
+        <result column="email" jdbcType="VARCHAR" property="email"/>
+        <result column="mobile" jdbcType="VARCHAR" property="mobile"/>
+        <result column="landLine" jdbcType="VARCHAR" property="landLine"/>
+        <result column="createtime" jdbcType="TIMESTAMP" property="createTime"/>
+        <result column="updatetime" jdbcType="TIMESTAMP" property="updateTime"/>
+    </resultMap>
+
+    <insert id="insertUser" parameterType="cn.altaria.sky.login.pojo.UserPojo">
+        INSERT INTO account (id, username, password, email, createtime, updatetime)
+        VALUES (#{userPojo.id}, #{userPojo.username}, #{userPojo.password}, #{userPojo.email}, #{userPojo.createTime},
+                #{userPojo.updateTime})
+    </insert>
+    <select id="selectUserByEmail" parameterType="String" resultMap="BaseResultMap">
+        select id, username, password, email, mobile, createtime, updatetime
+        from account
+        where email = #{email}
+    </select>
+    <select id="selectUserById" parameterType="String" resultMap="BaseResultMap">
+        select id, username, password, email, mobile, createtime, updatetime
+        from account
+        where id = #{id}
+    </select>
+    <select id="selectUserByUsername" parameterType="String" resultMap="BaseResultMap">
+        select id, username, password, email, mobile, createtime, updatetime
+        from account
+        where username = #{username}
+    </select>
+    <select id="selectUserByMobile" parameterType="String" resultMap="BaseResultMap">
+        select id, username, password, email, mobile, createtime, updatetime
+        from account
+        where mobile = #{mobile}
+    </select>
+
+
+</mapper>

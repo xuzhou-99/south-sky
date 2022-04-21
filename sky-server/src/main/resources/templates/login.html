@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>登录</title>
+    <link rel="stylesheet" th:href="@{/css/login.css}" type="text/css"/>
+</head>
+<body>
+<div class="container right-panel-active">
+    <!-- Sign Up -->
+    <div class="container__form container--signup">
+        <form action="#" class="form" id="form1">
+            <h2 class="form__title">Sign Up</h2>
+            <input class="input" name="username" placeholder="User" type="text"/>
+            <input class="input" name="email" placeholder="Email" type="email"/>
+            <input class="input" name="password" placeholder="Password" type="password"/>
+            <button class="btn" onclick="register()">Sign Up</button>
+        </form>
+    </div>
+
+    <!-- Sign In -->
+    <div class="container__form container--signin">
+        <form action="#" class="form" id="form2">
+            <h2 class="form__title">Sign In</h2>
+            <input class="input" name="email" placeholder="Email" type="email"/>
+            <input class="input" name="password" placeholder="Password" type="password"/>
+            <a class="link" href="#">Forgot your password?</a>
+            <button class="btn" onclick="login()">Sign In</button>
+        </form>
+    </div>
+
+    <!-- Overlay -->
+    <div class="container__overlay">
+        <div class="overlay">
+            <div class="overlay__panel overlay--left">
+                <button class="btn" id="signIn">Sign In</button>
+            </div>
+            <div class="overlay__panel overlay--right">
+                <button class="btn" id="signUp">Sign Up</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script rel="stylesheet" th:src="@{/js/login.js}" type="text/javascript"></script>
+</body>
+</html>

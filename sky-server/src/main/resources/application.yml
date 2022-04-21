@@ -1,0 +1,11 @@
+spring:
+  main:
+    allow-bean-definition-overriding: true
+  cache:
+    type: simple
+  profiles:
+    active: dev
+
+
+server:
+  port: 8081
