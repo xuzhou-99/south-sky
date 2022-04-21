@@ -31,6 +31,8 @@ public class LoginFilter implements Filter {
 
     private FilterConfig filterConfig;
 
+    private SSOLoginConfig ssoLoginConfig;
+
     private ISsoService ssoService;
 
     /**
@@ -42,6 +44,7 @@ public class LoginFilter implements Filter {
     public void init(FilterConfig filterConfig) {
         this.filterConfig = filterConfig;
         this.ssoService = SpringBeanUtils.getBean(ISsoService.class);
+        this.ssoLoginConfig = SpringBeanUtils.getBean(SSOLoginConfig.class);
     }
 
     /**
@@ -62,42 +65,53 @@ public class LoginFilter implements Filter {
         HttpServletResponse response = (HttpServletResponse) servletResponse;
         HttpSession session = request.getSession();
 
+        String path = request.getContextPath();
+        String url = servletRequest.getScheme() + "://" + request.getServerName() + ":" + request.getServerPort() + path + "/";
         StringBuffer requestUrl = request.getRequestURL();
-        log.info("requestUrl:{}", requestUrl);
-
-        Object isLogin = session.getAttribute("isLogin");
-        if (Objects.nonNull(isLogin) && (Boolean) isLogin) {
-            filterChain.doFilter(request, response);
-            return;
-        }
+        log.info("【SSO登录】requestUrl:{}", requestUrl);
 
         // 去sso认证中心校验token
         String token = request.getParameter("token");
 
-        String ssoUrl = "http://172.23.22.58:8081";
+        if(this.ssoService == null){
+            this.ssoLoginConfig = SpringBeanUtils.getBean(SSOLoginConfig.class);
+        }
 
-        // "sso-server-verify-url"
-        String verifyUrl = "http://172.23.22.58:8081/verify";
-
-        String logout = request.getParameter("logout");
-        if (logout != null) {
-            session.invalidate();
+        int logoutIndex = requestUrl.indexOf("logout");
+        if (logoutIndex > -1) {
             token = TokenRegister.getINSTANCE().get(session.getId());
-            this.ssoService.logout(ssoUrl + "/logout", token);
+            session.invalidate();
+            if (this.ssoService == null) {
+                this.ssoService = SpringBeanUtils.getBean(ISsoService.class);
+            }
+            log.info("【SSO登录】登出操作，SSOUrl: {}，token: {}", ssoLoginConfig.getUrl(), token);
+            this.ssoService.logout(ssoLoginConfig.getUrl() + "/logout", token);
             // 跳转至sso认证中心 sso-server-url-with-system-url
-            response.sendRedirect(ssoUrl + "/login?service=" + requestUrl + "&uuid=" + UUID.randomUUID());
+            response.sendRedirect(ssoLoginConfig.getUrl() + "/login?service=" + url);
+            return;
+        }
+
+        Object isLogin = session.getAttribute("isLogin");
+        if (Objects.nonNull(isLogin) && (Boolean) isLogin) {
+            log.info("【SSO登录】登录成功");
+            filterChain.doFilter(request, response);
             return;
         }
 
         if (token != null) {
-            this.ssoService = SpringBeanUtils.getBean(ISsoService.class);
-            boolean verifyResult = this.ssoService.verify(verifyUrl, token);
+            if (this.ssoService == null) {
+                this.ssoService = SpringBeanUtils.getBean(ISsoService.class);
+            }
+            // sso-server-verify-url
+            boolean verifyResult = this.ssoService.verify(ssoLoginConfig.getUrl() + "/verify", token);
             if (!verifyResult) {
+                log.info("【SSO登录】登录令牌校验未通过，重定向到登录页面");
                 // 校验未通过，重新登录
-                response.sendRedirect(ssoUrl + "/login?service=" + requestUrl + "&uuid=" + UUID.randomUUID());
+                response.sendRedirect(ssoLoginConfig.getUrl() + "/login?service=" + url);
                 return;
             }
 
+            log.info("【SSO登录】登录令牌校验通过，登录成功");
             session.setAttribute("isLogin", true);
             TokenRegister.getINSTANCE().put(session.getId(), token);
 
@@ -106,7 +120,7 @@ public class LoginFilter implements Filter {
         }
 
         // 跳转至sso认证中心 sso-server-url-with-system-url
-        response.sendRedirect(ssoUrl + "/login?service=" + requestUrl + "&uuid=" + UUID.randomUUID());
+        response.sendRedirect(ssoLoginConfig.getUrl() + "/login?service=" + url);
     }
 
 

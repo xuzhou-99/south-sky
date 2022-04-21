@@ -4,7 +4,7 @@ spring:
   cache:
     type: simple
   profiles:
-    active: dev
+    active: test
 
 
 server:

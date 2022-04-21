@@ -124,6 +124,13 @@
             <version>1.18.22</version>
             <scope>compile</scope>
         </dependency>
+
+        <dependency>
+            <groupId>cn.altaria</groupId>
+            <artifactId>base</artifactId>
+            <version>1.0.0</version>
+        </dependency>
+
     </dependencies>
 
     <build>

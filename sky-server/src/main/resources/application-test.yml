@@ -1,0 +1,76 @@
+spring:
+  # ---------------------------------------------  数据库配置(默认使用mysql：5.5+) -----------------------------------#
+  datasource:
+    driver-class-name: com.mysql.cj.jdbc.Driver
+    url: jdbc:mysql://sh-cynosdbmysql-grp-nkp6kzna.sql.tencentcdb.com:21822/test?characterEncoding=utf-8
+    username: root
+    password: Xz980203@
+
+
+  # --------------------------------------------- Mail配置 ------------------------------------------------------- #
+  mail:
+    port: 587
+    host: smtp.qq.com
+    username: 1064284972@qq,com
+    password: gszlixebwzicbdhh
+
+server:
+  port: 8081
+  servlet:
+    context-path: /
+
+sso:
+  enable: true
+  url: http://localhost:8081
+# --------------------------------------------- 配置mybatis ---------------------------------------------------- #
+mybatis:
+  mapper-locations: classpath:mapper/*.xml
+  configuration:
+    log-impl: org.apache.ibatis.logging.stdout.StdOutImpl
+
+
+
+fileStorage: D:\MyProject\fileStorage
+
+# --------------------------------------------- 配置ueditor ---------------------------------------------------- #
+editor:
+  url: http://localhost:8088/editor
+  maxSize: 1
+
+# jwt配置
+audience:
+  # 代表这个JWT的接收对象,存入audience
+  clientId: 098f6bcd4621d373cade4e832627b4f6
+  # 密钥, 经过Base64加密, 可自行替换
+  base64Secret: MDk4ZjZiY2Q0NjIxZDM3M2NhZGU0ZTgzMjYyN2I0ZjY=
+  # JWT的签发主体，存入issuer
+  name: restapiuser
+  # 过期时间，时间戳 2小时
+  expiresSecond: 7200000
+  # header中key
+  header: token
+
+# app 参数
+app:
+  info:
+    default:
+      count: 30
+  # 图片上传大小限制 单位 M
+  upload:
+    size: 5
+  # 授权
+  auth:
+    AppId: wx0f4bffe5023aa724
+    AppSecret: 24b6436d7647907a9b17aa1541834079
+    #    https://api.weixin.qq.com/sns/jscode2session?appid={1}&secret={2}&js_code={3}&grant_type=authorization_code
+    url: https://api.weixin.qq.com/sns/jscode2session
+  # 小程序每次获取手机验证码间隔时间、每天能获取的最多次数
+  phoneCode:
+    #每隔一分钟才能获取，跟前端保持一致，单位为毫秒
+    interval: 60000
+    #设置验证码过期时间为3分钟，单位为毫秒
+    effectiveTime: 180000
+    #每天最多十次
+    max: 100000
+    #解锁时间为24小时，单位为小时
+    unlockTime: 1
