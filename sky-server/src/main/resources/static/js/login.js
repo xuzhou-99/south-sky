@@ -83,10 +83,11 @@ function login() {
         if (!xhr || (xhr.readyState !== 4)) {
             return;
         }
+        var result;
         try {
-            var result = JSON.parse(xhr.responseText);
+            result = JSON.stringify(xhr.responseText);
         } catch (e) {
-            var result = xhr.responseText;
+            result = xhr.responseText;
         }
 
         // callback(xhr.responseText);
@@ -94,7 +95,7 @@ function login() {
             alert("登录成功!")
             location.assign(result);
         } else {
-            alert("登录失败！" + result)
+            alert("登录失败！" + result);
         }
     }
 

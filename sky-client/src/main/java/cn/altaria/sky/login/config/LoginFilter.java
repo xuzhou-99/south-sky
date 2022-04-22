@@ -2,7 +2,6 @@ package cn.altaria.sky.login.config;
 
 import java.io.IOException;
 import java.util.Objects;
-import java.util.UUID;
 
 import javax.servlet.Filter;
 import javax.servlet.FilterChain;
@@ -17,6 +16,7 @@ import javax.servlet.http.HttpSession;
 import cn.altaria.sky.login.cache.TokenRegister;
 import cn.altaria.sky.login.service.ISsoService;
 import cn.altaria.sky.login.spring.SpringBeanUtils;
+import cn.altaria.sky.login.util.CookieUtil;
 import lombok.extern.slf4j.Slf4j;
 
 /**
@@ -71,19 +71,19 @@ public class LoginFilter implements Filter {
         log.info("【SSO登录】requestUrl:{}", requestUrl);
 
         // 去sso认证中心校验token
-        String token = request.getParameter("token");
-
-        if(this.ssoService == null){
+        String token  = "";
+        if (this.ssoLoginConfig == null) {
             this.ssoLoginConfig = SpringBeanUtils.getBean(SSOLoginConfig.class);
         }
+        if (this.ssoService == null) {
+            this.ssoService = SpringBeanUtils.getBean(ISsoService.class);
+        }
 
+        // 登出
         int logoutIndex = requestUrl.indexOf("logout");
         if (logoutIndex > -1) {
             token = TokenRegister.getINSTANCE().get(session.getId());
             session.invalidate();
-            if (this.ssoService == null) {
-                this.ssoService = SpringBeanUtils.getBean(ISsoService.class);
-            }
             log.info("【SSO登录】登出操作，SSOUrl: {}，token: {}", ssoLoginConfig.getUrl(), token);
             this.ssoService.logout(ssoLoginConfig.getUrl() + "/logout", token);
             // 跳转至sso认证中心 sso-server-url-with-system-url
@@ -91,6 +91,7 @@ public class LoginFilter implements Filter {
             return;
         }
 
+        // 登录成功
         Object isLogin = session.getAttribute("isLogin");
         if (Objects.nonNull(isLogin) && (Boolean) isLogin) {
             log.info("【SSO登录】登录成功");
@@ -98,10 +99,9 @@ public class LoginFilter implements Filter {
             return;
         }
 
+        // 尚未登录，跳转sso，并进行验证
+        token = request.getParameter("token");
         if (token != null) {
-            if (this.ssoService == null) {
-                this.ssoService = SpringBeanUtils.getBean(ISsoService.class);
-            }
             // sso-server-verify-url
             boolean verifyResult = this.ssoService.verify(ssoLoginConfig.getUrl() + "/verify", token);
             if (!verifyResult) {
@@ -114,6 +114,9 @@ public class LoginFilter implements Filter {
             log.info("【SSO登录】登录令牌校验通过，登录成功");
             session.setAttribute("isLogin", true);
             TokenRegister.getINSTANCE().put(session.getId(), token);
+
+            CookieUtil.setCookie("token", token, 60 * 30, response);
+            response.sendRedirect(url);
 
             filterChain.doFilter(request, response);
             return;

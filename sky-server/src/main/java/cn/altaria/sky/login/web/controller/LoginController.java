@@ -15,6 +15,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 
+import cn.altaria.sky.login.CookieUtil;
 import cn.altaria.sky.login.cache.SystemRegister;
 import cn.altaria.sky.login.exception.LoginException;
 import cn.altaria.sky.login.service.ILoginService;
@@ -40,6 +41,16 @@ public class LoginController {
     public String login(HttpServletRequest request) {
         String serviceUrl = request.getParameter("service");
         log.info("【SSO单点登录】开始登录，原系统路径：{}", serviceUrl);
+        String token = CookieUtil.getCookie("token", request);
+
+        HttpSession session = request.getSession();
+        log.info("【session】 {} ，sessionId = {} ",serviceUrl,session.getId());
+
+        if (null != token) {
+            if (SystemRegister.getINSTANCE().containsKey(token)) {
+                return "redirect:" + serviceUrl + "?token=" + token;
+            }
+        }
         return "login";
     }
 
@@ -56,6 +67,9 @@ public class LoginController {
 
             String serviceUrl = request.getParameter("service");
             log.info("【SSO单点登录】登录成功，原系统路径：{}", serviceUrl);
+
+            HttpSession session = request.getSession();
+            log.info("【session】 {} ，sessionId = {} ",serviceUrl,session.getId());
             return ResponseEntity.ok(serviceUrl + "?token=" + token);
         }
 
@@ -65,9 +79,14 @@ public class LoginController {
     @RequestMapping("/logout")
     public String logout(HttpServletRequest request) {
         HttpSession session = request.getSession();
+        String token = CookieUtil.getCookie("token", request);
         if (session != null) {
             // 触发 LogoutListener
             session.invalidate();
+        }
+
+        if (null != token) {
+            SystemRegister.getINSTANCE().remove(token);
         }
         return "redirect:/";
     }
@@ -77,6 +96,7 @@ public class LoginController {
     public String verify(HttpServletRequest request, HttpServletResponse response, String token) {
         if (SystemRegister.getINSTANCE().containsKey(token)) {
             StringBuffer systemUrl = request.getRequestURL();
+            // 注册系统 systemUrl
             SystemRegister.getINSTANCE().put(token, systemUrl.toString());
             return "true";
         } else {
