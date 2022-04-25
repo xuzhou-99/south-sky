@@ -57,18 +57,20 @@ public class LoginServiceImpl implements ILoginService {
 
     @Override
     public String verify(HttpServletRequest request, String token) {
-        if (SystemRegister.getINSTANCE().containsKey(token)) {
-            String systemUrl = request.getParameter("service");
-            if(systemUrl == null){
-                systemUrl = request.getRequestURL().toString();
+        if (token != null) {
+            if (SystemRegister.getINSTANCE().containsKey(token)) {
+                String systemUrl = request.getParameter("service");
+                if (systemUrl == null) {
+                    systemUrl = request.getRequestURL().toString();
+                }
+                // 注册系统 systemUrl
+                SystemRegister.getINSTANCE().put(token, systemUrl);
+                log.info("【SSO单点登录】系统上线：{}", systemUrl);
+                return "true";
             }
-            // 注册系统 systemUrl
-            SystemRegister.getINSTANCE().put(token, systemUrl);
-            log.info("【SSO单点登录】系统上线：{}", systemUrl);
-            return "true";
-        } else {
-            return "fail";
         }
+
+        return "fail";
     }
 
 }

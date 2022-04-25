@@ -39,16 +39,19 @@ public class LoginController {
     @GetMapping("/login")
     public String login(HttpServletRequest request) {
         String serviceUrl = request.getParameter("service");
-        if(serviceUrl == null) {
+        if (serviceUrl == null) {
             serviceUrl = request.getRequestURI();
         }
         log.info("【SSO单点登录】开始登录，原系统路径：{}", serviceUrl);
 
         String token = CookieUtil.getCookie("token", request);
 
-        if (SystemRegister.getINSTANCE().containsKey(token)) {
-            return "redirect:" + serviceUrl + "?token=" + token;
+        if (token != null) {
+            if (SystemRegister.getINSTANCE().containsKey(token)) {
+                return "redirect:" + serviceUrl + "?token=" + token;
+            }
         }
+
         return "login";
     }
 

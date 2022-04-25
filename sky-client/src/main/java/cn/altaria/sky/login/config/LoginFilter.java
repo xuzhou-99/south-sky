@@ -106,9 +106,12 @@ public class LoginFilter implements Filter {
 
         // 尚未登录，跳转sso，并进行验证
         token = request.getParameter("token");
+        if (token == null) {
+            token = CookieUtil.getCookie("token", request);
+        }
         if (token != null) {
             // sso-server-verify-url
-            boolean verifyResult = this.ssoService.verify(ssoLoginConfig.getUrl() + "/verify?service=" + url, token);
+            boolean verifyResult = this.ssoService.verify(ssoLoginConfig.getUrl() + "/verify", url, token);
             if (!verifyResult) {
                 log.info("【SSO登录】登录令牌校验未通过，重定向到登录页面");
                 // 校验未通过，重新登录

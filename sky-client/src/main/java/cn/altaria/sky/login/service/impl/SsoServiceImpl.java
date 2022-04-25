@@ -53,15 +53,16 @@ public class SsoServiceImpl implements ISsoService {
     /**
      * 校验令牌
      *
-     * @param url   sso校验令牌请求
-     * @param token 令牌
+     * @param url        sso校验令牌请求
+     * @param token      令牌
+     * @param serviceUrl 请求系统路径
      * @return 校验结果
      */
     @Override
-    public boolean verify(String url, String token) {
+    public boolean verify(String url, String serviceUrl, String token) {
         // TODO http请求校验token
         try (CloseableHttpClient httpClient = HttpClients.createDefault()) {
-            HttpGet httpGet = new HttpGet(url + "?token=" + token);
+            HttpGet httpGet = new HttpGet(url + "?service=" + serviceUrl + "&token=" + token);
             String responseBody = httpClient.execute(httpGet, httpResponse -> {
                 int status = httpResponse.getStatusLine().getStatusCode();
                 if (status < 200 || status >= 300) {

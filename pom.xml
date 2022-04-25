@@ -7,7 +7,7 @@
     <groupId>cn.altaria</groupId>
     <artifactId>south-sky</artifactId>
     <packaging>pom</packaging>
-    <version>1.0-SNAPSHOT</version>
+    <version>1.0.0</version>
     <description>单点登录服务</description>
     <modules>
         <module>sky-server</module>

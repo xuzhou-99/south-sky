@@ -2,11 +2,11 @@ package cn.altaria.sky.login.web.controller;
 
 import javax.annotation.Resource;
 
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.ResponseBody;
 
-import cn.altaria.base.response.ApiResponse;
 import cn.altaria.sky.login.exception.RegisterException;
 import cn.altaria.sky.login.service.IUserService;
 import cn.altaria.sky.login.web.vo.UserVO;
@@ -35,13 +35,13 @@ public class UserController {
      */
     @PostMapping(value = "register")
     @ResponseBody
-    public ApiResponse register(final UserVO userVO) {
+    public ResponseEntity<?> register(final UserVO userVO) {
         // register
         try {
             userService.register(userVO);
         } catch (RegisterException e) {
-            return ApiResponse.ofFail(e.getMessage());
+            return ResponseEntity.status(1001).body(e.getMessage());
         }
-        return ApiResponse.ofSuccess();
+        return ResponseEntity.ok("");
     }
 }

@@ -5,8 +5,6 @@ import org.springframework.context.ApplicationEvent;
 import org.springframework.context.event.SmartApplicationListener;
 import org.springframework.stereotype.Component;
 
-import com.sun.istack.internal.NotNull;
-
 import cn.altaria.sky.login.service.impl.UserServiceImpl;
 import lombok.extern.slf4j.Slf4j;
 
@@ -26,7 +24,7 @@ public class UserRegisterSendEmailListener implements SmartApplicationListener {
      * @return boolean
      */
     @Override
-    public boolean supportsEventType(@NotNull Class<? extends ApplicationEvent> aClass) {
+    public boolean supportsEventType(Class<? extends ApplicationEvent> aClass) {
         // 只对UserRegisterEvent事件类型做处理
         return aClass == UserRegisterEvent.class;
     }
@@ -65,7 +63,7 @@ public class UserRegisterSendEmailListener implements SmartApplicationListener {
      * @param applicationEvent 事件
      */
     @Override
-    public void onApplicationEvent(@NotNull ApplicationEvent applicationEvent) {
+    public void onApplicationEvent(ApplicationEvent applicationEvent) {
 
         // 转换事件类型为制定类型
         UserRegisterEvent event = (UserRegisterEvent) applicationEvent;

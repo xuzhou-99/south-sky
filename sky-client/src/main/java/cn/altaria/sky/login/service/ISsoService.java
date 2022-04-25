@@ -19,9 +19,10 @@ public interface ISsoService {
     /**
      * 校验令牌
      *
-     * @param url   sso校验令牌请求
-     * @param token 令牌
+     * @param url        sso校验令牌请求
+     * @param token      令牌
+     * @param serviceUrl 请求系统路径
      * @return 校验结果
      */
-    boolean verify(String url, String token);
+    boolean verify(String url, String serviceUrl, String token);
 }

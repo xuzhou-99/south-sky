@@ -5,7 +5,7 @@
     <parent>
         <artifactId>south-sky</artifactId>
         <groupId>cn.altaria</groupId>
-        <version>1.0-SNAPSHOT</version>
+        <version>1.0.0</version>
     </parent>
     <modelVersion>4.0.0</modelVersion>
 
@@ -125,11 +125,11 @@
             <scope>compile</scope>
         </dependency>
 
-        <dependency>
-            <groupId>cn.altaria</groupId>
-            <artifactId>base</artifactId>
-            <version>1.0.0</version>
-        </dependency>
+<!--        <dependency>-->
+<!--            <groupId>cn.altaria</groupId>-->
+<!--            <artifactId>base</artifactId>-->
+<!--            <version>1.0.0</version>-->
+<!--        </dependency>-->
 
     </dependencies>
 
@@ -186,5 +186,20 @@
                 </plugin>
             </plugins>
         </pluginManagement>
+
+        <plugins>
+        <plugin>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-maven-plugin</artifactId>
+            <version>2.3.6.RELEASE</version>
+            <executions>
+                <execution>
+                    <goals>
+                        <goal>repackage</goal>
+                    </goals>
+                </execution>
+            </executions>
+        </plugin>
+        </plugins>
     </build>
 </project>
