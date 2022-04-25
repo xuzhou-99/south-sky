@@ -85,7 +85,7 @@ function login() {
         }
         var result;
         try {
-            result = JSON.stringify(xhr.responseText);
+            result = JSON.parse(xhr.responseText);
         } catch (e) {
             result = xhr.responseText;
         }
@@ -95,7 +95,7 @@ function login() {
             alert("登录成功!")
             location.assign(result);
         } else {
-            alert("登录失败！" + result);
+            alert("登录失败！" + JSON.stringify(xhr.responseText));
         }
     }
 

@@ -4,8 +4,5 @@ spring:
   cache:
     type: simple
   profiles:
-    active: test
+    active: dev
 
-
-server:
-  port: 8081

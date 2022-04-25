@@ -1,6 +1,8 @@
 package cn.altaria.sky.login.service;
 
 
+import javax.servlet.http.HttpServletRequest;
+
 import cn.altaria.sky.login.exception.LoginException;
 import cn.altaria.sky.login.pojo.UserPojo;
 
@@ -25,5 +27,7 @@ public interface ILoginService {
     /**
      * 登出
      */
-    void logout();
+    void logout(String token);
+
+    String verify(HttpServletRequest request, String token);
 }

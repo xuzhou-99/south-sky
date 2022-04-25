@@ -4,15 +4,16 @@ package cn.altaria.sky.login.service.impl;
 import java.util.Objects;
 
 import javax.annotation.Resource;
+import javax.servlet.http.HttpServletRequest;
 
-import org.apache.shiro.SecurityUtils;
-import org.apache.shiro.subject.Subject;
 import org.springframework.stereotype.Service;
 
+import cn.altaria.sky.login.cache.SystemRegister;
 import cn.altaria.sky.login.exception.LoginException;
 import cn.altaria.sky.login.pojo.UserPojo;
 import cn.altaria.sky.login.service.ILoginService;
 import cn.altaria.sky.login.service.IUserService;
+import lombok.extern.slf4j.Slf4j;
 
 /**
  * LoginServiceImpl
@@ -22,6 +23,7 @@ import cn.altaria.sky.login.service.IUserService;
  * @date 2022/4/19 13:57
  */
 @Service
+@Slf4j
 public class LoginServiceImpl implements ILoginService {
 
     @Resource
@@ -45,20 +47,28 @@ public class LoginServiceImpl implements ILoginService {
     }
 
     @Override
-    public void logout() {
-        Subject subject = SecurityUtils.getSubject();
-        if (null != subject) {
-            if (subject.isAuthenticated() || subject.isRemembered()) {
-                subject.logout();
-            }
+    public void logout(String token) {
+        if (null != token) {
+            SystemRegister.getINSTANCE().remove(token);
+            log.info("【SSO单点登录】移除token");
         }
-        afterLogout();
-    }
-
-    /**
-     * 登出后事件
-     */
-    protected void afterLogout() {
 
     }
+
+    @Override
+    public String verify(HttpServletRequest request, String token) {
+        if (SystemRegister.getINSTANCE().containsKey(token)) {
+            String systemUrl = request.getParameter("service");
+            if(systemUrl == null){
+                systemUrl = request.getRequestURL().toString();
+            }
+            // 注册系统 systemUrl
+            SystemRegister.getINSTANCE().put(token, systemUrl);
+            log.info("【SSO单点登录】系统上线：{}", systemUrl);
+            return "true";
+        } else {
+            return "fail";
+        }
+    }
+
 }
