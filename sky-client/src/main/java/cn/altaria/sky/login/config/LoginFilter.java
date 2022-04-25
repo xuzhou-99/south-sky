@@ -71,7 +71,7 @@ public class LoginFilter implements Filter {
         log.info("【SSO登录】requestUrl:{}", requestUrl);
 
         // 去sso认证中心校验token
-        String token  = "";
+        String token = "";
         if (this.ssoLoginConfig == null) {
             this.ssoLoginConfig = SpringBeanUtils.getBean(SSOLoginConfig.class);
         }
@@ -82,10 +82,15 @@ public class LoginFilter implements Filter {
         // 登出
         int logoutIndex = requestUrl.indexOf("logout");
         if (logoutIndex > -1) {
+
             token = TokenRegister.getINSTANCE().get(session.getId());
+
             session.invalidate();
+
             log.info("【SSO登录】登出操作，SSOUrl: {}，token: {}", ssoLoginConfig.getUrl(), token);
+
             this.ssoService.logout(ssoLoginConfig.getUrl() + "/logout", token);
+
             // 跳转至sso认证中心 sso-server-url-with-system-url
             response.sendRedirect(ssoLoginConfig.getUrl() + "/login?service=" + url);
             return;
@@ -103,7 +108,7 @@ public class LoginFilter implements Filter {
         token = request.getParameter("token");
         if (token != null) {
             // sso-server-verify-url
-            boolean verifyResult = this.ssoService.verify(ssoLoginConfig.getUrl() + "/verify", token);
+            boolean verifyResult = this.ssoService.verify(ssoLoginConfig.getUrl() + "/verify?service=" + url, token);
             if (!verifyResult) {
                 log.info("【SSO登录】登录令牌校验未通过，重定向到登录页面");
                 // 校验未通过，重新登录
