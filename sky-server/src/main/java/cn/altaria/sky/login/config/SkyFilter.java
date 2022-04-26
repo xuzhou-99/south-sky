@@ -88,48 +88,51 @@ public class SkyFilter implements Filter {
             this.loginService = SpringBeanUtils.getBean(ILoginService.class);
         }
 
-
-        Object isLogin = session.getAttribute("isLogin");
-        if (null != isLogin && (Boolean) session.getAttribute("isLogin")) {
-
-            // 尚未登录，跳转sso，并进行验证
-            String token = request.getParameter("token");
-            if (token != null) {
-                // sso-server-verify-url
-                boolean verifyResult = Boolean.parseBoolean(this.loginService.verify(request, token));
-                if (verifyResult) {
-                    log.info("【SSO登录】登录令牌校验通过，登录成功");
-                    session.setAttribute("isLogin", true);
-
-                    CookieUtil.setCookie("token", token, 60 * 30, response);
-
-                    String serviceUrl = request.getParameter("service");
-                    String path = request.getContextPath();
-                    String url = request.getScheme() + "://" + request.getServerName() + ":" + request.getServerPort() + path + "/";
-
-                    if (serviceUrl == null) {
-                        serviceUrl = url;
-                    }
-
-                    response.sendRedirect(serviceUrl);
-                }
-            }
-
-            log.info("【SSO登录】登录成功");
-            chain.doFilter(request, response);
-            return;
-        }
-
-        if (requestUrl.indexOf("/login") > -1) {
-            chain.doFilter(request, response);
-            return;
-        }
-
         if (requestUrl.indexOf("/verify") > -1) {
             chain.doFilter(request, response);
             return;
         }
 
+        if (requestUrl.indexOf("/logout") > -1) {
+            chain.doFilter(request, response);
+            return;
+        }
+
+        Object isLogin = session.getAttribute("isLogin");
+        if (null != isLogin && (Boolean) isLogin) {
+            log.info("【SSO登录】登录成功");
+            chain.doFilter(request, response);
+            return;
+        } else {
+            String token = request.getParameter("token");
+            if (token == null) {
+                token = CookieUtil.getCookie("token", request);
+            }
+            if (token != null) {
+                // sso-server-verify-url
+                boolean verifyResult = Boolean.parseBoolean(this.loginService.verify(request, token, session.getId()));
+                if (verifyResult) {
+                    log.info("【SSO登录】登录令牌校验通过，登录成功");
+                    session.setAttribute("isLogin", true);
+                    session.setAttribute("token", token);
+
+                    String serviceUrl = request.getParameter("service");
+
+                    if (serviceUrl == null) {
+                        serviceUrl = request.getScheme() + "://" + request.getServerName() + ":" + request.getServerPort() +
+                                request.getContextPath() + "/";
+                    }
+
+                    response.sendRedirect(serviceUrl);
+                    return;
+                }
+            }
+        }
+
+        if (requestUrl.indexOf("/login") > -1 || requestUrl.indexOf("/logout") > -1) {
+            chain.doFilter(request, response);
+            return;
+        }
 
         // 跳转至登录页面
         response.sendRedirect("/login");

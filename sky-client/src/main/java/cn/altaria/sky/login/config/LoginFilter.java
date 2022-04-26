@@ -43,8 +43,13 @@ public class LoginFilter implements Filter {
     @Override
     public void init(FilterConfig filterConfig) {
         this.filterConfig = filterConfig;
-        this.ssoService = SpringBeanUtils.getBean(ISsoService.class);
-        this.ssoLoginConfig = SpringBeanUtils.getBean(SSOLoginConfig.class);
+
+        if (this.ssoLoginConfig == null) {
+            this.ssoLoginConfig = SpringBeanUtils.getBean(SSOLoginConfig.class);
+        }
+        if (this.ssoService == null) {
+            this.ssoService = SpringBeanUtils.getBean(ISsoService.class);
+        }
     }
 
     /**
@@ -60,18 +65,16 @@ public class LoginFilter implements Filter {
     public void doFilter(ServletRequest servletRequest, ServletResponse servletResponse, FilterChain filterChain)
             throws IOException, ServletException {
 
-        log.info("-----------sso拦截器-----------");
         HttpServletRequest request = (HttpServletRequest) servletRequest;
         HttpServletResponse response = (HttpServletResponse) servletResponse;
-        HttpSession session = request.getSession();
 
-        String path = request.getContextPath();
-        String url = servletRequest.getScheme() + "://" + request.getServerName() + ":" + request.getServerPort() + path + "/";
-        StringBuffer requestUrl = request.getRequestURL();
-        log.info("【SSO登录】requestUrl:{}", requestUrl);
+        // 支持跨越
+        response.setHeader("Access-Control-Allow-Origin", "*");
+        response.setHeader("Access-Control-Allow-Credentials", "true");
+        response.setHeader("Access-Control-Allow-Methods", "POST, GET, OPTIONS, DELETE");
+        response.setHeader("Access-Control-Max-Age", "3600");
+        response.setHeader("Access-Control-Allow-Headers", " Origin, X-Requested-With, Content-Type, Accept");
 
-        // 去sso认证中心校验token
-        String token = "";
         if (this.ssoLoginConfig == null) {
             this.ssoLoginConfig = SpringBeanUtils.getBean(SSOLoginConfig.class);
         }
@@ -79,54 +82,64 @@ public class LoginFilter implements Filter {
             this.ssoService = SpringBeanUtils.getBean(ISsoService.class);
         }
 
-        // 登出
-        int logoutIndex = requestUrl.indexOf("logout");
-        if (logoutIndex > -1) {
+        log.info("-----------sso拦截器-----------");
+        HttpSession session = request.getSession();
 
-            token = TokenRegister.getINSTANCE().get(session.getId());
-
-            session.invalidate();
-
-            log.info("【SSO登录】登出操作，SSOUrl: {}，token: {}", ssoLoginConfig.getUrl(), token);
-
-            this.ssoService.logout(ssoLoginConfig.getUrl() + "/logout", token);
-
-            // 跳转至sso认证中心 sso-server-url-with-system-url
-            response.sendRedirect(ssoLoginConfig.getUrl() + "/login?service=" + url);
-            return;
-        }
+        String path = request.getContextPath();
+        String url = servletRequest.getScheme() + "://" + request.getServerName() + ":" + request.getServerPort() + path + "/";
+        StringBuffer requestUrl = request.getRequestURL();
+        log.info("【SSO登录】requestUrl:{}", requestUrl);
 
         // 登录成功
         Object isLogin = session.getAttribute("isLogin");
+
         if (Objects.nonNull(isLogin) && (Boolean) isLogin) {
-            log.info("【SSO登录】登录成功");
+
+            // 登出
+            int logoutSsoIndex = requestUrl.indexOf("sso-logout");
+            if (logoutSsoIndex > -1) {
+                session.invalidate();
+                return;
+            }
+
+            // 登出
+            int logoutIndex = requestUrl.indexOf("logout");
+            if (logoutIndex > -1) {
+
+                String token = (String) session.getAttribute("token");
+
+                log.info("【SSO登录】登出操作，通知SSO服务下线其他服务，SSOUrl: {}，token: {}", ssoLoginConfig.getUrl(), token);
+                this.ssoService.logout(ssoLoginConfig.getUrl() + "/logout", token);
+
+                // 跳转至sso认证中心 sso-server-url-with-system-url
+                response.sendRedirect(ssoLoginConfig.getUrl() + "/login?service=" + url);
+                return;
+            }
+
+
+            log.info("【SSO登录】存在会话，已经登录");
             filterChain.doFilter(request, response);
             return;
         }
 
         // 尚未登录，跳转sso，并进行验证
-        token = request.getParameter("token");
-        if (token == null) {
-            token = CookieUtil.getCookie("token", request);
-        }
+        String token = request.getParameter("token");
         if (token != null) {
+            log.info("【SSO登录】存在登录令牌，通过SSO服务进行校验，应用地址：{}，token：{}，sessionId：{}", url, token, session.getId());
             // sso-server-verify-url
-            boolean verifyResult = this.ssoService.verify(ssoLoginConfig.getUrl() + "/verify", url, token);
-            if (!verifyResult) {
-                log.info("【SSO登录】登录令牌校验未通过，重定向到登录页面");
-                // 校验未通过，重新登录
-                response.sendRedirect(ssoLoginConfig.getUrl() + "/login?service=" + url);
+            boolean verifyResult = this.ssoService.verify(ssoLoginConfig.getUrl() + "/verify", url, token, session.getId());
+            if (verifyResult) {
+                log.info("【SSO登录】登录令牌校验通过，登录成功");
+                session.setAttribute("isLogin", true);
+
+                response.sendRedirect(url);
+                filterChain.doFilter(request, response);
                 return;
             }
 
-            log.info("【SSO登录】登录令牌校验通过，登录成功");
-            session.setAttribute("isLogin", true);
-            TokenRegister.getINSTANCE().put(session.getId(), token);
-
-            CookieUtil.setCookie("token", token, 60 * 30, response);
-            response.sendRedirect(url);
-
-            filterChain.doFilter(request, response);
+            log.info("【SSO登录】登录令牌校验未通过，重定向到登录页面");
+            // 校验未通过，重新登录
+            response.sendRedirect(ssoLoginConfig.getUrl() + "/login?service=" + url);
             return;
         }
 

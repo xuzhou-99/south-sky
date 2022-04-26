@@ -1,4 +1,4 @@
-package cn.altaria.sky.login.register;
+package cn.altaria.sky.login.event.register;
 
 import org.springframework.context.ApplicationEvent;
 import org.springframework.context.event.SmartApplicationListener;

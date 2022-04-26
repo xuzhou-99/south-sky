@@ -38,16 +38,18 @@ public class LoginController {
 
     @GetMapping("/login")
     public String login(HttpServletRequest request) {
-        String serviceUrl = request.getParameter("service");
-        if (serviceUrl == null) {
-            serviceUrl = request.getRequestURI();
-        }
-        log.info("【SSO单点登录】开始登录，原系统路径：{}", serviceUrl);
 
-        String token = CookieUtil.getCookie("token", request);
+        String token = (String) request.getSession().getAttribute("token");
 
         if (token != null) {
             if (SystemRegister.getINSTANCE().containsKey(token)) {
+                String serviceUrl = request.getParameter("service");
+                if (serviceUrl == null) {
+                    serviceUrl =  request.getScheme() + "://" + request.getServerName() + ":" + request.getServerPort() +
+                            request.getContextPath() + "/";
+                }
+                log.info("【SSO单点登录】开始登录，原系统路径：{}, 存在token：{}", serviceUrl, token);
+
                 return "redirect:" + serviceUrl + "?token=" + token;
             }
         }
@@ -58,58 +60,18 @@ public class LoginController {
     @PostMapping("/login")
     public ResponseEntity<?> loginPost(@RequestParam String email, @RequestParam String password,
                                        HttpServletRequest request, HttpServletResponse response) throws LoginException {
-
-        String serviceUrl = request.getParameter("service");
-        HttpSession session = request.getSession();
-
-        String path = request.getContextPath();
-        String url = request.getScheme() + "://" + request.getServerName() + ":" + request.getServerPort() + path + "/";
-
-        if (serviceUrl == null) {
-            serviceUrl = url;
-        }
-
-        boolean loginSuccess = loginService.login(email, password);
-
-        if (loginSuccess) {
-            request.getSession().setAttribute("isLogin", true);
-
-            String token = UUID.randomUUID().toString();
-            SystemRegister.getINSTANCE().put(token, serviceUrl);
-
-            log.info("【登录】登录成功，系统路径：{}", serviceUrl);
-            log.info("【session】 {} ，sessionId = {} ", serviceUrl, session.getId());
-
-            return ResponseEntity.ok(serviceUrl + "?token=" + token);
-        }
-
-        log.info("【登录】登录失败，系统路径：{}", url);
-        return ResponseEntity.ok("login");
+        return loginService.loginSso(request, response, email, password);
     }
 
     @RequestMapping("/logout")
     public String logout(HttpServletRequest request, String token) {
-
-        HttpSession session = request.getSession();
-
-        if (token == null) {
-            token = CookieUtil.getCookie("token", request);
-        }
-        log.info("【登录】登出");
-        log.info("【session】sessionId = {} ", session.getId());
-
-        if (session != null) {
-            // 触发 LogoutListener
-            session.invalidate();
-        }
-
-        loginService.logout(token);
+        loginService.logout(request, token);
         return "redirect:/";
     }
 
     @RequestMapping("/verify")
     @ResponseBody
-    public String verify(HttpServletRequest request, String token) {
-        return loginService.verify(request, token);
+    public String verify(HttpServletRequest request, String token, String jsessionid) {
+        return loginService.verify(request, token, jsessionid);
     }
 }

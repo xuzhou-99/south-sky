@@ -1,4 +1,4 @@
-package cn.altaria.sky.login.register;
+package cn.altaria.sky.login.event.register;
 
 import org.springframework.context.event.EventListener;
 import org.springframework.core.annotation.Order;
@@ -8,16 +8,15 @@ import cn.altaria.sky.login.web.vo.UserVO;
 import lombok.extern.slf4j.Slf4j;
 
 /**
- * AnnotationRegisterListener
+ * RegisterUserEmailListener
  *
  * @author xuzhou
  * @version 1.0.0
- * @date 2021/4/9 17:15
+ * @date 2021/4/9 17:28
  */
 @Component
 @Slf4j
-public class AnnotationRegisterListener {
-
+public class AnnotationRegisterUserEmailListener {
     /**
      * 使用注解{@linkplain EventListener}的方式来监听用户注册事件 UserRegisterEvent
      * {@linkplain Order}来标记同步时的执行顺序
@@ -25,15 +24,11 @@ public class AnnotationRegisterListener {
      * @param userRegisterEvent 用户注册事件
      */
     @EventListener
-    @Order(value = 3)
-    public void register(UserRegisterEvent userRegisterEvent) {
-
-        // get register user
+    @Order(value = 2)
+    public void sendMail(UserRegisterEvent userRegisterEvent) {
         UserVO userVO = userRegisterEvent.getUser();
 
-        // do something
 
-
-        log.info("@EventListener注册信息，用户名：" + userVO.getUsername() + "，密码：" + userVO.getPassword());
+        log.info("用户注册成功，发送邮件: {}。", userVO.getEmail());
     }
 }

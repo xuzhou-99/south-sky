@@ -15,7 +15,7 @@ import cn.altaria.sky.login.mapper.AccountMapper;
 import cn.altaria.sky.login.mapper.UserMapper;
 import cn.altaria.sky.login.pojo.AccountPojo;
 import cn.altaria.sky.login.pojo.UserPojo;
-import cn.altaria.sky.login.register.UserRegisterEvent;
+import cn.altaria.sky.login.event.register.UserRegisterEvent;
 import cn.altaria.sky.login.service.IUserService;
 import cn.altaria.sky.login.sid.SIDUtils;
 import cn.altaria.sky.login.web.vo.UserVO;

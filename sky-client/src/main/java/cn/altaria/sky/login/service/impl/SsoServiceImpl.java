@@ -30,24 +30,8 @@ public class SsoServiceImpl implements ISsoService {
      */
     @Override
     public void logout(String logoutUrl, String token) {
-
-        try (CloseableHttpClient httpClient = HttpClients.createDefault()) {
-            HttpGet httpGet = new HttpGet(logoutUrl + "?token=" + token);
-            String responseBody = httpClient.execute(httpGet, httpResponse -> {
-                int status = httpResponse.getStatusLine().getStatusCode();
-                if (status < 200 || status >= 300) {
-                    // ... handle unsuccessful request
-                    return null;
-                }
-                HttpEntity entity = httpResponse.getEntity();
-                return entity != null ? EntityUtils.toString(entity) : null;
-            });
-            // ... do something with response
-
-        } catch (IOException e) {
-            // ... handle IO exception
-        }
-
+        String getUrl = logoutUrl + "?token=" + token;
+        doGet(getUrl);
     }
 
     /**
@@ -59,11 +43,26 @@ public class SsoServiceImpl implements ISsoService {
      * @return 校验结果
      */
     @Override
-    public boolean verify(String url, String serviceUrl, String token) {
-        // TODO http请求校验token
+    public boolean verify(String url, String serviceUrl, String token, String jsessionid) {
+        String getUrl = url + "?service=" + serviceUrl + "&token=" + token + "&jsessionid=" + jsessionid;
+        String responseBody = doGet(getUrl);
+        if (null != responseBody && !"".equals(responseBody)) {
+            return Boolean.parseBoolean(responseBody);
+        }
+        return false;
+    }
+
+    /**
+     * get 请求
+     *
+     * @param url 请求路径
+     * @return 请求结果
+     */
+    private String doGet(String url) {
         try (CloseableHttpClient httpClient = HttpClients.createDefault()) {
-            HttpGet httpGet = new HttpGet(url + "?service=" + serviceUrl + "&token=" + token);
-            String responseBody = httpClient.execute(httpGet, httpResponse -> {
+            HttpGet httpGet = new HttpGet(url);
+            // ... do something with response
+            return httpClient.execute(httpGet, httpResponse -> {
                 int status = httpResponse.getStatusLine().getStatusCode();
                 if (status < 200 || status >= 300) {
                     // ... handle unsuccessful request
@@ -72,19 +71,9 @@ public class SsoServiceImpl implements ISsoService {
                 HttpEntity entity = httpResponse.getEntity();
                 return entity != null ? EntityUtils.toString(entity) : null;
             });
-            // ... do something with response
-            return doVerify(responseBody);
         } catch (IOException e) {
             // ... handle IO exception
         }
-
-        return false;
-    }
-
-    private Boolean doVerify(String responseBody) {
-        if (null != responseBody && !"".equals(responseBody)) {
-            return Boolean.parseBoolean(responseBody);
-        }
-        return false;
+        return "";
     }
 }
