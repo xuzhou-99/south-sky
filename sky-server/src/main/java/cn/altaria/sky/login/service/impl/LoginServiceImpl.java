@@ -11,6 +11,7 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
 
+import org.springframework.context.ApplicationContext;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 
@@ -18,6 +19,7 @@ import cn.altaria.sky.login.CookieUtil;
 import cn.altaria.sky.login.cache.ClientSessionVo;
 import cn.altaria.sky.login.cache.SystemRegister;
 import cn.altaria.sky.login.cache.SystemSessionRegister;
+import cn.altaria.sky.login.event.logout.SsoLogoutEvent;
 import cn.altaria.sky.login.exception.LoginException;
 import cn.altaria.sky.login.pojo.UserPojo;
 import cn.altaria.sky.login.service.ILoginService;
@@ -37,6 +39,9 @@ public class LoginServiceImpl implements ILoginService {
 
     @Resource
     private IUserService userService;
+
+    @Resource
+    private ApplicationContext applicationContext;
 
     @Override
     public boolean login(String email, String password) throws LoginException {
@@ -90,46 +95,48 @@ public class LoginServiceImpl implements ILoginService {
 
     @Override
     public void logout(HttpServletRequest request, String token) {
-        HttpSession session = request.getSession();
 
-        if (token == null) {
+        log.info("【SSO登出】通知其他系统登出");
+        if (token != null && !"null".equals(token)) {
+            log.info("【SSO登出】子系统注销，通知当前在线其他系统注销，token = {}", token);
+            // 通过 ApplicationEvent 发布事件通知子系统注销
+        } else {
+            HttpSession session = request.getSession();
             token = (String) session.getAttribute("token");
+            log.info("【SSO登出】SSO服务注销，通知当前在线其他系统注销，sessionId = {} ，token = {}", session.getId(), token);
+            // 触发 LogoutListener
+            session.invalidate();
         }
-        log.info("【登录】通知其他系统登出");
-        log.info("【session】sessionId = {} ，token = {}", session.getId(), token);
+
+        applicationContext.publishEvent(new SsoLogoutEvent(this, token));
+
         if (null != token) {
             SystemRegister.getINSTANCE().remove(token);
-            log.info("【SSO单点登录】移除token");
+            log.info("【SSO登出】移除token");
         }
-
-        // 触发 LogoutListener
-        session.invalidate();
+        log.info("【SSO登出】系统全部注销成功");
     }
 
     @Override
-    public String verify(HttpServletRequest request, String token, String jsessionid) {
+    public String verify(HttpServletRequest request, String service, String token, String jsessionid) {
         if (token != null) {
             if (SystemRegister.getINSTANCE().containsKey(token)) {
                 log.info("【SSO单点登录】{} 用户", token);
 
-                String systemUrl = request.getParameter("service");
-                if (systemUrl == null) {
-                    systemUrl = request.getRequestURL().toString();
-                }
                 // 注册系统 systemUrl
                 List<ClientSessionVo> clientSessionVos = SystemSessionRegister.getINSTANCE().get(token);
                 if (clientSessionVos == null) {
                     clientSessionVos = new ArrayList<>();
                 }
                 ClientSessionVo client = ClientSessionVo.builder()
-                        .clientUrl(systemUrl)
+                        .clientUrl(service)
                         .jSessionId(jsessionid)
                         .build();
                 clientSessionVos.add(client);
 
                 SystemSessionRegister.getINSTANCE().put(token, clientSessionVos);
 
-                log.info("【SSO单点登录】{} 用户，系统上线：{}，sessionId：{}", token, systemUrl, jsessionid);
+                log.info("【SSO单点登录】{} 用户，系统上线：{}，sessionId：{}", token, service, jsessionid);
 
                 return "true";
             }

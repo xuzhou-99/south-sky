@@ -13,10 +13,8 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
 
-import cn.altaria.sky.login.cache.TokenRegister;
 import cn.altaria.sky.login.service.ISsoService;
 import cn.altaria.sky.login.spring.SpringBeanUtils;
-import cn.altaria.sky.login.util.CookieUtil;
 import lombok.extern.slf4j.Slf4j;
 
 /**
@@ -131,6 +129,7 @@ public class LoginFilter implements Filter {
             if (verifyResult) {
                 log.info("【SSO登录】登录令牌校验通过，登录成功");
                 session.setAttribute("isLogin", true);
+                session.setAttribute("token", token);
 
                 response.sendRedirect(url);
                 filterChain.doFilter(request, response);

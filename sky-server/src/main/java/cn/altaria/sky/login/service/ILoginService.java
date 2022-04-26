@@ -57,5 +57,5 @@ public interface ILoginService {
      * @param jsessionid 会话ID
      * @return 令牌校验结果
      */
-    String verify(HttpServletRequest request, String token, String jsessionid);
+    String verify(HttpServletRequest request, String service, String token, String jsessionid);
 }

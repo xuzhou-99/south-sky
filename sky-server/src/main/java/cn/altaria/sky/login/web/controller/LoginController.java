@@ -1,11 +1,8 @@
 package cn.altaria.sky.login.web.controller;
 
-import java.util.UUID;
-
 import javax.annotation.Resource;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-import javax.servlet.http.HttpSession;
 
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
@@ -15,7 +12,6 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 
-import cn.altaria.sky.login.CookieUtil;
 import cn.altaria.sky.login.cache.SystemRegister;
 import cn.altaria.sky.login.exception.LoginException;
 import cn.altaria.sky.login.service.ILoginService;
@@ -45,7 +41,7 @@ public class LoginController {
             if (SystemRegister.getINSTANCE().containsKey(token)) {
                 String serviceUrl = request.getParameter("service");
                 if (serviceUrl == null) {
-                    serviceUrl =  request.getScheme() + "://" + request.getServerName() + ":" + request.getServerPort() +
+                    serviceUrl = request.getScheme() + "://" + request.getServerName() + ":" + request.getServerPort() +
                             request.getContextPath() + "/";
                 }
                 log.info("【SSO单点登录】开始登录，原系统路径：{}, 存在token：{}", serviceUrl, token);
@@ -71,7 +67,7 @@ public class LoginController {
 
     @RequestMapping("/verify")
     @ResponseBody
-    public String verify(HttpServletRequest request, String token, String jsessionid) {
-        return loginService.verify(request, token, jsessionid);
+    public String verify(HttpServletRequest request, String service, String token, String jsessionid) {
+        return loginService.verify(request, service, token, jsessionid);
     }
 }

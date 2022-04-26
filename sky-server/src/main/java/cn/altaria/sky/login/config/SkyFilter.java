@@ -40,7 +40,7 @@ public class SkyFilter implements Filter {
      * 1.Throws a ServletException <br>
      * 2.Does not return within a time period defined by the web container
      *
-     * @param filterConfig
+     * @param filterConfig 过滤器配置
      */
     @Override
     public void init(FilterConfig filterConfig) throws ServletException {
@@ -63,9 +63,9 @@ public class SkyFilter implements Filter {
      * * 4. b) <strong>or</strong> not pass on the request/response pair to the next entity in the filter chain to block the request processing<br>
      * * 5. Directly set headers on the response after invocation of the next entity in the filter chain.
      *
-     * @param servletRequest
-     * @param servletResponse
-     * @param chain
+     * @param servletRequest 请求
+     * @param servletResponse 响应
+     * @param chain 过滤器链
      */
     @Override
     public void doFilter(ServletRequest servletRequest, ServletResponse servletResponse, FilterChain chain) throws IOException, ServletException {
@@ -98,6 +98,11 @@ public class SkyFilter implements Filter {
             return;
         }
 
+        if (requestUrl.indexOf("/sso-logout") > -1) {
+            session.invalidate();
+            return;
+        }
+
         Object isLogin = session.getAttribute("isLogin");
         if (null != isLogin && (Boolean) isLogin) {
             log.info("【SSO登录】登录成功");
@@ -109,19 +114,18 @@ public class SkyFilter implements Filter {
                 token = CookieUtil.getCookie("token", request);
             }
             if (token != null) {
+                String serviceUrl = request.getParameter("service");
+
+                if (serviceUrl == null) {
+                    serviceUrl = request.getScheme() + "://" + request.getServerName() + ":" + request.getServerPort() +
+                            request.getContextPath() + "/";
+                }
                 // sso-server-verify-url
-                boolean verifyResult = Boolean.parseBoolean(this.loginService.verify(request, token, session.getId()));
+                boolean verifyResult = Boolean.parseBoolean(this.loginService.verify(request, serviceUrl, token, session.getId()));
                 if (verifyResult) {
                     log.info("【SSO登录】登录令牌校验通过，登录成功");
                     session.setAttribute("isLogin", true);
                     session.setAttribute("token", token);
-
-                    String serviceUrl = request.getParameter("service");
-
-                    if (serviceUrl == null) {
-                        serviceUrl = request.getScheme() + "://" + request.getServerName() + ":" + request.getServerPort() +
-                                request.getContextPath() + "/";
-                    }
 
                     response.sendRedirect(serviceUrl);
                     return;
@@ -129,7 +133,7 @@ public class SkyFilter implements Filter {
             }
         }
 
-        if (requestUrl.indexOf("/login") > -1 || requestUrl.indexOf("/logout") > -1) {
+        if (requestUrl.indexOf("/login") > -1) {
             chain.doFilter(request, response);
             return;
         }
